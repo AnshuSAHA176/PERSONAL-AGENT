@@ -31,3 +31,62 @@ class Document(models.Model):
         ]
     def __str__(self):
         return f'Title :- {self.title}'
+
+
+from django.db import models
+from pgvector.django import VectorField
+
+
+class DocumentChunk(models.Model):
+
+    document = models.ForeignKey(
+        "document.Document",
+        on_delete=models.CASCADE,
+        related_name="chunks"
+    )
+
+    chunk_index = models.PositiveIntegerField()
+
+    text = models.TextField()
+
+    embedding = VectorField(
+        dimensions=1024
+    )
+
+    metadata = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    token_count = models.PositiveIntegerField(
+        default=0
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
+    class Meta:
+
+        ordering = ["chunk_index"]
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["document", "chunk_index"],
+                name="unique_document_chunk"
+            )
+        ]
+
+        indexes = [
+            models.Index(
+                fields=["document", "chunk_index"],
+                name="document_chunk_idx"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.document.title} - Chunk {self.chunk_index}"

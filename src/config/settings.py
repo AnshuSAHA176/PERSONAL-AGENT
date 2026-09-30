@@ -159,8 +159,8 @@ cloudinary.config(
 )
 
 
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/1"
-CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/1"
+CELERY_BROKER_URL = "redis://127.0.0.1:6378/1"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6378/1"
 
 TIME_ZONE = "Asia/Kolkata"
 USE_TZ = True

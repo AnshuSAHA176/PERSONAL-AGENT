@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .serializer import DocumentSerializer
 from .models import Document
-
+from rest_framework.views import APIView
 
 class DocumentView(viewsets.ModelViewSet):
     permission_classes =[IsAuthenticated]
@@ -17,3 +17,6 @@ class DocumentView(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         return serializer.save(user=self.request.user)
+
+
+class SimilarityView()

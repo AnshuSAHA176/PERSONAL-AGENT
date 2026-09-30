@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Document
-
+from .worker import DocumentProcessWorker
 
 class DocumentSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source="user.email",read_only=True)
@@ -36,4 +36,5 @@ class DocumentSerializer(serializers.ModelSerializer):
         validated_data['file_size'] = file.size     
         validated_data['mime_type'] = file.content_type 
         documment = Document.objects.create(**validated_data)
+        DocumentProcessWorker.delay(documment.id)
         return documment
