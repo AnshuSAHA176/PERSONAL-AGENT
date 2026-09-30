@@ -1,10 +1,11 @@
 from rest_framework import serializers
 
-from .models import Document
+from .models import Document, DocumentChunk
 from .worker import DocumentProcessWorker
 
+
 class DocumentSerializer(serializers.ModelSerializer):
-    email = serializers.CharField(source="user.email",read_only=True)
+    email = serializers.CharField(source="user.email", read_only=True)
 
     class Meta:
         model = Document
@@ -26,15 +27,23 @@ class DocumentSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if not attrs['title']:
-            raise serializers.ValidationError('Please provide a title')
-        if not attrs['file']:
-            raise serializers.ValidationError('file is required')
+        if not attrs["title"]:
+            raise serializers.ValidationError("Please provide a title")
+        if not attrs["file"]:
+            raise serializers.ValidationError("file is required")
         return attrs
+
     def create(self, validated_data):
-        file = validated_data['file']
-        validated_data['file_size'] = file.size     
-        validated_data['mime_type'] = file.content_type 
+        file = validated_data["file"]
+        validated_data["file_size"] = file.size
+        validated_data["mime_type"] = file.content_type
         documment = Document.objects.create(**validated_data)
         DocumentProcessWorker.delay(documment.id)
         return documment
+
+
+class SimilarChunksSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentChunk
+        fields = ["document", "text", "metadata", "created_at"]
+    
