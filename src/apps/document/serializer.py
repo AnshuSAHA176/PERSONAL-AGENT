@@ -47,3 +47,7 @@ class SimilarChunksSerializer(serializers.ModelSerializer):
         model = DocumentChunk
         fields = ["document", "text", "metadata", "created_at"]
     
+class SourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentChunk
+        fields = [ "metadata"]
