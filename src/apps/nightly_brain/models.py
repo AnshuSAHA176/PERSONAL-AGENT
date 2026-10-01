@@ -153,3 +153,53 @@ class RecommendationFeedback(models.Model):
 
     def __str__(self):
         return f"{self.recommendation_id} - {self.feedback}"
+
+
+from django.conf import settings
+from django.db import models
+from cloudinary.models import CloudinaryField
+
+class VoiceBriefing(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="voice_briefings"
+    )
+
+    text = models.TextField()
+
+    audio_url = CloudinaryField(
+        'file',
+         resource_type="raw"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+
+    error_message = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["status"]),
+        ]
+
+    def __str__(self):
+        return f"Voice Briefing - {self.user} - {self.status}"

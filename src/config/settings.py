@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.document',
     'apps.agent',
     'apps.nightly_brain',
+    "django_celery_beat"
     
 ]
 
@@ -154,15 +155,28 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": False,
 }
 
-cloudinary.config(
-     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secrect=os.environ.get("CLOUDINARY_API_SECRET"),
-)
+import os
+import cloudinary
 
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
 
 CELERY_BROKER_URL = "redis://127.0.0.1:6378/1"
 CELERY_RESULT_BACKEND = "redis://127.0.0.1:6378/1"
 
 TIME_ZONE = "Asia/Kolkata"
 USE_TZ = True
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    "nightly-brain-every-day": {
+        "task": "apps.nightly_brain.tasks.nightly_brain",
+        "schedule": crontab(hour=2, minute=0),
+    },
+}

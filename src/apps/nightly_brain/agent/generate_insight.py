@@ -1,86 +1,98 @@
+
 from apps.document.llm import get_model
 from pydantic import BaseModel, Field
-from langchain.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 
 
 class Insight(BaseModel):
-    title: str
-    description: str
-    reasoning: str
+    title: str = Field(description="A specific, informative insight title.")
+    description: str = Field(description="A concise explanation of the insight.")
+    reasoning: str = Field(description="Evidence-based reasoning supporting the insight.")
 
 
 class Insights(BaseModel):
     insights: list[Insight] = Field(
         default_factory=list,
-        description="Meaningful insights derived from the supplied topics and connections."
+        description="Meaningful insights derived from supplied topics and connections."
     )
 
 
-def get_insights(
+def get_insight(
     topics: list[str],
-    connections: list[dict]
+    connections: list,
 ) -> list[Insight]:
+
+    if not topics or not connections:
+        print("Skipping insight generation: topics or connections are empty.")
+        return []
+
+    # Support both Pydantic objects and dictionaries.
+    connections_data = [
+        item.model_dump() if isinstance(item, BaseModel) else item
+        for item in connections
+    ]
 
     llm = get_model("openai/gpt-oss-20b")
 
     model = llm.with_structured_output(
         Insights,
-        method="json_mode"
+        method="json_mode",
     )
 
     system_prompt = """
     You are an expert knowledge discovery and reasoning agent
     in a personal AI system called Nightly Brain.
 
-    Your task is to analyze the supplied topics and their
-    connections to generate meaningful insights.
+    Analyze the supplied topics and connections to identify
+    meaningful, non-obvious insights.
 
-    Instructions:
-    1. Identify deeper patterns, implications, and observations
-       that emerge from the topics and their relationships.
-    2. Discover insights that are not immediately obvious from
-       looking at individual topics in isolation.
-    3. Identify potential knowledge gaps, dependencies, shared
-       principles, or opportunities revealed by the connections.
-    4. Explain why each insight matters and how it follows from
-       the supplied information.
-    5. Prioritize specific, useful, and informative insights.
+    Focus on:
+    - Deeper patterns and implications.
+    - Knowledge gaps and dependencies.
+    - Shared principles and opportunities.
+    - Observations that emerge from multiple relationships.
 
     Rules:
-    - Use only the supplied topics and connections as evidence.
-    - Do not invent facts, relationships, or unsupported conclusions.
-    - Do not simply restate topics or paraphrase connections.
+    - Use only the supplied topics and connections.
+    - Do not invent facts or unsupported conclusions.
+    - Do not merely restate topics or connections.
     - Avoid redundant, obvious, vague, or repetitive insights.
     - Distinguish supported observations from tentative hypotheses.
-    - Do not treat possible relationships as proven causal claims.
-    - Return an empty list if there are no meaningful insights.
+    - Never present possible relationships as proven causal claims.
     - Do not generate recommendations or action plans.
-    - Keep each insight concise and focused on one observation.
+    - Generate at most 5 concise insights.
+    - Return an empty list only when no meaningful insight can be derived.
 
-    For every insight, provide:
-    - title: A specific and informative title.
-    - description: A clear explanation of the observation.
-    - reasoning: How the supplied topics and connections
-      support the insight.
+    Each insight must contain:
+    - title
+    - description
+    - reasoning
 
-    Return the result in the required structured format.
+    Return valid JSON with the key "insights", matching the schema.
     """
 
     human_prompt = f"""
-    Analyze the following topics and their connections.
+    Analyze the following knowledge data.
 
-    Topics:
+    TOPICS:
     {topics}
 
-    Connections:
-    {connections}
+    CONNECTIONS:
+    {connections_data}
 
-    Generate meaningful insights based on this information.
+    Identify deeper observations supported by these connections.
+    Generate valid JSON with the required "insights" key.
     """
 
     result = model.invoke([
         SystemMessage(content=system_prompt),
-        HumanMessage(content=human_prompt)
+        HumanMessage(content=human_prompt),
     ])
 
-    return result.insights
+    insights = result.insights
+
+    print(f"Generated {len(insights)} insights.")
+    for insight in insights:
+        print(f"Insight: {insight.title}")
+
+    return insights
