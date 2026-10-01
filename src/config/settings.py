@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "rest_framework",
     'apps.account',
     'apps.document',
+    'apps.agent',
+    'apps.nightly_brain',
     
 ]
 
