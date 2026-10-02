@@ -47,7 +47,8 @@ INSTALLED_APPS = [
     'apps.document',
     'apps.agent',
     'apps.nightly_brain',
-    "django_celery_beat"
+    "django_celery_beat",
+    'apps.notification'
     
 ]
 

@@ -13,18 +13,20 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.close()
             return
 
-        group_name = f"user {user.id}"
+        self.group_name = f"user-{user.id}"
 
-        
-
+        await self.channel_layer.group_add(
+            self.group_name,
+            self.channel_name
+        )
         
 
         await self.accept()
 
     async def disconnect(self, close_code):
 
-        if self.batch_group:
+        if self.group_name:
             await self.channel_layer.group_discard(
-                self.batch_group,
+                self.group_nam,
                 self.channel_name
             )
