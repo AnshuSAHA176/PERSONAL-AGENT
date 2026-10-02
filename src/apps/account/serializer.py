@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import User
 from django.contrib.auth import authenticate
 from apps.document.models import Document
-
+from apps.nightly_brain.models import VoiceBriefing
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -45,7 +45,16 @@ class DocumnetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields =[
-            'title'
-'uploaded'
-'status'
+            'title',
+            'uploaded',
+            'status'
         ]
+class VoiceSerializer(serializers.ModelSerializer):
+    title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = VoiceBriefing
+        fields = ["id", "title", "audio_url", "status"]
+
+    def get_title(self, obj):
+        return obj.text[:50] + "..." if len(obj.text) > 50 else obj.text

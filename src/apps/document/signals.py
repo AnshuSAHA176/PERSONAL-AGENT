@@ -5,7 +5,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 from apps.notification.models import Notification
-
+from django.core.cache import cache
 
 @receiver(pre_save, sender=Document)
 def old_data(sender, instance, **kwargs):
@@ -93,3 +93,9 @@ def documnet_notifications(sender, instance, created, **kwargs):
         event = {"type": "notification", "message": event}
 
         async_to_sync(channel_layer.group_send)(group_name, event)
+
+
+@receiver(signal=[post_save,post_delete],sender=Document)
+def clear_cache(sender,instance,**kwargs):
+    prefix = f"dashboard-{instance.user.id}"
+    cache.delete(prefix)

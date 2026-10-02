@@ -12,13 +12,10 @@ class NightlySession(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="nightly_sessions"
+        related_name="nightly_sessions",
     )
     status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING,
-        db_index=True
+        max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True
     )
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -41,14 +38,9 @@ class Discovery(models.Model):
         INSIGHT = "INSIGHT", "Insight"
 
     session = models.ForeignKey(
-        NightlySession,
-        on_delete=models.CASCADE,
-        related_name="discoveries"
+        NightlySession, on_delete=models.CASCADE, related_name="discoveries"
     )
-    discovery_type = models.CharField(
-        max_length=20,
-        choices=DiscoveryType.choices
-    )
+    discovery_type = models.CharField(max_length=20, choices=DiscoveryType.choices)
     title = models.CharField(max_length=255)
     description = models.TextField()
 
@@ -84,23 +76,16 @@ class Recommendation(models.Model):
         DISMISSED = "DISMISSED", "Dismissed"
 
     session = models.ForeignKey(
-        NightlySession,
-        on_delete=models.CASCADE,
-        related_name="recommendations"
+        NightlySession, on_delete=models.CASCADE, related_name="recommendations"
     )
     title = models.CharField(max_length=255)
     suggested_action = models.TextField()
     reasoning = models.TextField()
     priority = models.CharField(
-        max_length=10,
-        choices=Priority.choices,
-        default=Priority.MEDIUM
+        max_length=10, choices=Priority.choices, default=Priority.MEDIUM
     )
     status = models.CharField(
-        max_length=15,
-        choices=Status.choices,
-        default=Status.PENDING,
-        db_index=True
+        max_length=15, choices=Status.choices, default=Status.PENDING, db_index=True
     )
 
     # Supporting discoveries, projects, documents, or other context.
@@ -128,19 +113,14 @@ class RecommendationFeedback(models.Model):
         COMPLETED = "COMPLETED", "Completed"
 
     recommendation = models.ForeignKey(
-        Recommendation,
-        on_delete=models.CASCADE,
-        related_name="feedback_entries"
+        Recommendation, on_delete=models.CASCADE, related_name="feedback_entries"
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="recommendation_feedback"
+        related_name="recommendation_feedback",
     )
-    feedback = models.CharField(
-        max_length=20,
-        choices=FeedbackType.choices
-    )
+    feedback = models.CharField(max_length=20, choices=FeedbackType.choices)
     comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -159,6 +139,7 @@ from django.conf import settings
 from django.db import models
 from cloudinary.models import CloudinaryField
 
+
 class VoiceBriefing(models.Model):
 
     class Status(models.TextChoices):
@@ -169,26 +150,26 @@ class VoiceBriefing(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="voice_briefings"
+        related_name="voice_briefings",
+    )
+
+    session = models.OneToOneField(
+        "nightly_brain.NightlySession",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="audio_briefing",
     )
 
     text = models.TextField()
 
-    audio_url = CloudinaryField(
-        'file',
-         resource_type="raw"
-    )
+    audio_url = CloudinaryField("file", resource_type="raw")
 
     status = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.PENDING
+        max_length=20, choices=Status.choices, default=Status.PENDING
     )
 
-    error_message = models.TextField(
-        blank=True,
-        null=True
-    )
+    error_message = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -203,7 +184,6 @@ class VoiceBriefing(models.Model):
 
     def __str__(self):
         return f"Voice Briefing - {self.user} - {self.status}"
-
 
 
 class MemoryContinuity(models.Model):
