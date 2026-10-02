@@ -182,7 +182,10 @@ CELERY_BEAT_SCHEDULE = {
     "nightly-brain-every-day": {
         "task": "apps.nightly_brain.tasks.nightly_brain",
         "schedule": crontab(hour=2, minute=0),
-    },
+    },"4am-every-day": {
+            "task": "apps.nightly_brain.memory_continuity.memory_worker",
+            "schedule": crontab(hour=5, minute=0),
+        },
 }
 
 CHANNEL_LAYERS = {
@@ -193,3 +196,13 @@ CHANNEL_LAYERS = {
         },
     },
 }
+
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6378/2",
+    }
+}
+

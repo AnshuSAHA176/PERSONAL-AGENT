@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import User
 from django.contrib.auth import authenticate
+from apps.document.models import Document
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -38,3 +40,12 @@ class LoginSerializer(serializers.Serializer):
         attrs['user'] = user
 
         return attrs
+
+class DocumnetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields =[
+            'title'
+'uploaded'
+'status'
+        ]

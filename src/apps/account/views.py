@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from .models import User
 from .serializer import RegisterSerializer,LoginSerializer
 from django.db import IntegrityError
@@ -8,8 +8,8 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from rest_framework.views import APIView
-
-
+from apps.document.models import Document
+from django.db.models import Count,Q
 
 class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
@@ -41,3 +41,38 @@ class LoginView(APIView):
             "access" :str(access),
             "refresh":str(refresh)
         },status=status.HTTP_200_OK)
+
+
+
+class Dashboard(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self,request):
+
+        stats= Document.objects.filter(user=request.user).annotate( total_documents = Count('id'))
+            
+
+
+        
+
+
+
+
+
+        data ={
+  "stats": {
+    "total_documents": stats.total_documents,
+    "completed_sessions": 10,
+    "memory_records": 8,
+    "audio_briefings": 10
+  },
+  "recent_documents": ,
+  "latest_briefing": {
+    "id": 401,
+    "title": "Your Daily Knowledge Briefing",
+    "status": "COMPLETED",
+    "audio_url": "https://example.com/briefing.mp3",
+    "duration_seconds": 392
+  }
+}

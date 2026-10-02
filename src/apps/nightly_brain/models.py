@@ -203,3 +203,52 @@ class VoiceBriefing(models.Model):
 
     def __str__(self):
         return f"Voice Briefing - {self.user} - {self.status}"
+
+
+
+class MemoryContinuity(models.Model):
+
+    class Status(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        COMPLETED = "COMPLETED", "Completed"
+        FAILED = "FAILED", "Failed"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="memory_continuities",
+    )
+
+    session = models.OneToOneField(
+        "nightly_brain.NightlySession",
+        on_delete=models.CASCADE,
+        related_name="memory_continuity",
+    )
+
+    summary = models.TextField(
+        help_text="Generated memory continuity for this session."
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+
+    error_message = models.TextField(
+        blank=True,
+        null=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["status"]),
+        ]
+
+    def __str__(self):
+        return f"Memory continuity - {self.user_id} - {self.created_at}"

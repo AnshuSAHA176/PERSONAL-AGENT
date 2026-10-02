@@ -11,6 +11,8 @@ from apps.nightly_brain.models import NightlySession, VoiceBriefing
 from apps.nightly_brain.agent.discovery_agent import get_discover_agent
 from apps.nightly_brain.agent.generate_summary import generate_summary
 from apps.nightly_brain.agent.generate_voice import generate_speech
+from django.core.cache import cache
+
 
 User = get_user_model()
 
@@ -24,8 +26,12 @@ def nightly_brain():
         document__chunks__created_at__gte=yesterday,
         document__chunks__created_at__lte=now,
     ).distinct()
-
+    prefix_key = "today_users"
+    cache.set(key=prefix_key,value=[user.id for user in users],timeout=60 * 60 * 8, )
     for user in users:
+        
+        
+
         chunks = DocumentChunk.objects.filter(
             document__user=user,
             created_at__gte=yesterday,
@@ -100,10 +106,7 @@ def process_user_nightly_brain(self, user_id, session_id, briefing_id):
             "session": session,
         })
 
-        print("Topics:", discoveries.get("topics"))
-        print("Connections:", discoveries.get("connections"))
-        print("Insights:", discoveries.get("insights"))
-        print("Validated insights:", discoveries.get("validate_insight"))
+        
 
         summary_text = generate_summary(chunks_data)
 
@@ -122,8 +125,12 @@ def process_user_nightly_brain(self, user_id, session_id, briefing_id):
                 folder="voice_briefings",
             )
 
+
+
+
         briefing.audio_url = upload_result["secure_url"]
         briefing.status = VoiceBriefing.Status.COMPLETED
+       
         briefing.error_message = None
         briefing.save(update_fields=[
             "audio_url",
@@ -151,3 +158,5 @@ def process_user_nightly_brain(self, user_id, session_id, briefing_id):
             raise self.retry(exc=exc, countdown=60)
 
         raise
+
+
