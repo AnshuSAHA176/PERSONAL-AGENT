@@ -1,39 +1,32 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
-import json
-from apps.account.models import User
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
-class NotificationConsumer(AsyncWebsocketConsumer):
+
+class NotificationConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
+        user = self.scope.get("user")
 
-        self.user = self.scope["user"]
-
-        self.group_name = f"user-{self.user.id}"
-        if not self.user.is_authenticated:
-            await self.close()
+        if not user or not user.is_authenticated:
+            await self.close(code=4001)
             return
 
+        self.group_name = f"notification_{user.id}"
 
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
         )
-        print(f'CONNECT {self.group_name}')
-        
 
         await self.accept()
 
     async def disconnect(self, close_code):
+        group_name = getattr(self, "group_name", None)
 
-        if self.group_name:
+        if group_name:
             await self.channel_layer.group_discard(
-                self.group_nam,
+                group_name,
                 self.channel_name
             )
-    async def notification(self,event):
-        print(f'CONNECT {self.user.id}')
-        await self.send(text_data=json.dumps({
-            "type": "notification_message",
-            "message": event["message"],
-        }))
+
+    async def notification_message(self, event):
+        await self.send_json(event["data"])
