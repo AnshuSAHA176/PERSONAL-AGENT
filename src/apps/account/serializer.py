@@ -54,7 +54,7 @@ class VoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VoiceBriefing
-        fields = ["id", "title", "audio_url", "status"]
+        fields = ["id", "title", "audio_url", "status", "created_at"]
 
     def get_title(self, obj):
         return obj.text[:50] + "..." if len(obj.text) > 50 else obj.text

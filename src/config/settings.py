@@ -211,19 +211,21 @@ cloudinary.config(
 # --------------------------------------------------
 # REDIS
 # --------------------------------------------------
+import os
+import ssl
 
-REDIS_URL = os.getenv(
-    "REDIS_URL",
-    "redis://127.0.0.1:6379/0",
-)
-
-# --------------------------------------------------
-# CELERY
-# --------------------------------------------------
+REDIS_URL = os.environ.get("REDIS_URL")
 
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 
+CELERY_BROKER_USE_SSL = {
+    "ssl_cert_reqs": ssl.CERT_REQUIRED,
+}
+
+CELERY_REDIS_BACKEND_USE_SSL = {
+    "ssl_cert_reqs": ssl.CERT_REQUIRED,
+}
 CELERY_BEAT_SCHEDULE = {
     "nightly-brain-every-day": {
         "task": "apps.nightly_brain.tasks.nightly_brain",
@@ -234,7 +236,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=5, minute=0),
     },
 }
-
+CELERY_TASK_IGNORE_RESULT = True
 # --------------------------------------------------
 # DJANGO CHANNELS
 # --------------------------------------------------
